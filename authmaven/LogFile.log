@@ -1,0 +1,10 @@
+Oct 31, 2019 9:10:16 PM authenticationlab.FileLogger <init>
+INFO: System startup
+Oct 31, 2019 9:10:22 PM authenticationlab.FileLogger log
+INFO: 2019-10-31 21:10:22.071 New
+Oct 31, 2019 9:11:01 PM authenticationlab.FileLogger <init>
+INFO: System startup
+Oct 31, 2019 9:11:05 PM authenticationlab.FileLogger log
+INFO: 2019-10-31 21:11:05.485 New
+Oct 31, 2019 9:11:21 PM authenticationlab.FileLogger log
+INFO: 2019-10-31 21:11:21.911 New
