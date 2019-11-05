@@ -47,6 +47,7 @@ public class AuthService {
             e.printStackTrace();
             return "";
         }
+        return "hey";
     }
     
     public boolean ValidateSession(String session){
