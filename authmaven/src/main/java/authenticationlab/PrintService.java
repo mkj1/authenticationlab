@@ -8,6 +8,7 @@ import java.rmi.RemoteException;
  * @author Mads
  */
 public interface PrintService extends Remote {
+    public void login(String username, String pw) throws RemoteException;
     public void print(String filename, String printer) throws RemoteException;
     public void queue() throws RemoteException;
     public void topQueue(int job) throws RemoteException;
