@@ -30,6 +30,8 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
 
     FileLogger logger;
 
+    //This implementation only allows one loggedinID at a given moment,
+    //to further improve this, a table to hold multiple session IDs should be implemented.
     private String loggedinID = null;
 
     private boolean authenticate(String tryPW, byte[] encryptedPW, byte[] salt)
