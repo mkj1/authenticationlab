@@ -14,7 +14,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +32,7 @@ import javax.crypto.spec.PBEKeySpec;
 public class PrintServant extends UnicastRemoteObject implements PrintService {
 
     FileLogger logger;
+    ArrayList<Policy> policies;
 
     //This implementation only allows one loggedinID at a given moment,
     //to further improve this, a table to hold multiple session IDs should be implemented.
@@ -64,9 +68,10 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         return salt;
     }
 
-    public PrintServant() throws RemoteException {
+    public PrintServant() throws RemoteException, FileNotFoundException {
         super();
         logger = new FileLogger();
+        policies = loadACLPolicies();
     }
 
     @Override
@@ -213,6 +218,22 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         System.out.println(methodName + " invoked");
+    }
+    
+    public ArrayList<Policy> loadACLPolicies() throws FileNotFoundException {
+        ArrayList<Policy> policies = new ArrayList<Policy>();
+        Scanner scanner = new Scanner(new File("Policies"));
+        scanner.nextLine();
+        while(scanner.hasNextLine()){
+            String line = scanner.nextLine();
+            String[] stuff = line.split(":");
+            String name = stuff[0];
+            int permissions = Integer.parseInt(stuff[1]);
+            Policy newpol = new Policy(name, permissions);
+            policies.add(newpol);
+        }
+        System.out.println("Policies loaded");
+        return policies;
     }
 
     private boolean auth(String username, String pw) {
