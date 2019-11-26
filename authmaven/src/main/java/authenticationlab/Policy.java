@@ -9,6 +9,8 @@ package authenticationlab;
  *
  * @author nilement
  */
+
+//Disregard this, not needed for ACL, maybe for Roles
 public class Policy {
     public String Username;
     public int Permissions;

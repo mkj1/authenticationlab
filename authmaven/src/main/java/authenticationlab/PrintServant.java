@@ -17,6 +17,7 @@ import java.security.spec.KeySpec;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -32,7 +33,9 @@ import javax.crypto.spec.PBEKeySpec;
 public class PrintServant extends UnicastRemoteObject implements PrintService {
 
     FileLogger logger;
-    ArrayList<Policy> policies;
+    AccessManager manager;
+    HashMap<String, Integer> policies;
+    MethodAcceses accesses;
 
     //This implementation only allows one loggedinID at a given moment,
     //to further improve this, a table to hold multiple session IDs should be implemented.
@@ -72,6 +75,8 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         super();
         logger = new FileLogger();
         policies = loadACLPolicies();
+        manager = new AccessManager();
+        accesses = new MethodAcceses();
     }
 
     @Override
@@ -83,9 +88,15 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         } catch (ServerNotActiveException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        int userPermissions = policies.get("Alice");
+        if (!manager.checkAccess(1, accesses.Print)){
+            return;
+        }
+        
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
-        System.out.println(methodName + " invoked");
+        System.out.println(methodName + " invoked"); 
         logger.log("New");
     }
 
@@ -98,6 +109,12 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         } catch (ServerNotActiveException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        int userPermissions = policies.get("Alice");
+        if (!manager.checkAccess(userPermissions, accesses.Queue)){
+            return;
+        }
+        
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         System.out.println(methodName + " invoked");
@@ -131,6 +148,12 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         } catch (ServerNotActiveException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        int userPermissions = policies.get("Alice");
+        if (!manager.checkAccess(userPermissions, accesses.TopQueue)){
+            return;
+        }
+        
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         System.out.println(methodName + " invoked");
@@ -145,6 +168,12 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         } catch (ServerNotActiveException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        int userPermissions = policies.get("Alice");
+        if (!manager.checkAccess(userPermissions, accesses.Start)){
+            return;
+        }
+        
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         System.out.println(methodName + " invoked");
@@ -159,6 +188,12 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         } catch (ServerNotActiveException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        int userPermissions = policies.get("Alice");
+        if (!manager.checkAccess(userPermissions, accesses.Stop)){
+            return;
+        }
+        
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         System.out.println(methodName + " invoked");
@@ -173,6 +208,12 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         } catch (ServerNotActiveException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        int userPermissions = policies.get("Alice");
+        if (!manager.checkAccess(userPermissions, accesses.Restart)){
+            return;
+        }
+        
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         System.out.println(methodName + " invoked");
@@ -187,6 +228,12 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         } catch (ServerNotActiveException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        int userPermissions = policies.get("Alice");
+        if (!manager.checkAccess(userPermissions, accesses.Status)){
+            return;
+        }
+        
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         System.out.println(methodName + " invoked");
@@ -201,6 +248,12 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         } catch (ServerNotActiveException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        int userPermissions = policies.get("Alice");
+        if (!manager.checkAccess(userPermissions, accesses.ReadConfig)){
+            return;
+        }
+        
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         System.out.println(methodName + " invoked");
@@ -215,13 +268,19 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         } catch (ServerNotActiveException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        int userPermissions = policies.get("Alice");
+        if (!manager.checkAccess(userPermissions, accesses.SetConfig)){
+            return;
+        }
+        
         String methodName = new Object() {
         }.getClass().getEnclosingMethod().getName();
         System.out.println(methodName + " invoked");
     }
     
-    public ArrayList<Policy> loadACLPolicies() throws FileNotFoundException {
-        ArrayList<Policy> policies = new ArrayList<Policy>();
+    public HashMap<String, Integer> loadACLPolicies() throws FileNotFoundException {
+        HashMap<String, Integer> policies = new HashMap<String, Integer>();
         Scanner scanner = new Scanner(new File("Policies"));
         scanner.nextLine();
         while(scanner.hasNextLine()){
@@ -229,8 +288,9 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             String[] stuff = line.split(":");
             String name = stuff[0];
             int permissions = Integer.parseInt(stuff[1]);
-            Policy newpol = new Policy(name, permissions);
-            policies.add(newpol);
+//            Policy newpol = new Policy(name, permissions);
+//            policies.add(newpol);
+              policies.put(name, permissions);
         }
         System.out.println("Policies loaded");
         return policies;
@@ -241,6 +301,10 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
 
             byte[] bytes = null;
             byte[] saltBytes = null;
+            
+            String lul = System.getProperty("user.dir");
+            
+            System.out.println("Working Directory = " + System.getProperty("user.dir"));
 
             Scanner scanner = new Scanner(new File("users"));
             int linecount = 0;
