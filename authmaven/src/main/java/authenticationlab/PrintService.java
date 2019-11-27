@@ -8,14 +8,13 @@ import java.rmi.RemoteException;
  * @author Mads
  */
 public interface PrintService extends Remote {
-    public void login(String username, String pw) throws RemoteException;
-    public void print(String filename, String printer) throws RemoteException;
-    public void queue() throws RemoteException;
-    public void topQueue(int job) throws RemoteException;
-    public void start() throws RemoteException;
-    public void stop() throws RemoteException;
-    public void restart() throws RemoteException;
-    public void status() throws RemoteException;
-    public void readConfig(String parameter) throws RemoteException;
-    public void setConfig(String parameter, String value) throws RemoteException;
+    public void print(String username, String password, String filename, String printer) throws RemoteException;
+    public void queue(String username, String password) throws RemoteException;
+    public void topQueue(String username, String password,int job) throws RemoteException;
+    public void start(String username, String password) throws RemoteException;
+    public void stop(String username, String password) throws RemoteException;
+    public void restart(String username, String password) throws RemoteException;
+    public void status(String username, String password) throws RemoteException;
+    public void readConfig(String username, String password,String parameter) throws RemoteException;
+    public void setConfig(String username, String password,String parameter, String value) throws RemoteException;
 }

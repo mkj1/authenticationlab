@@ -7,6 +7,7 @@ package authenticationlab;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
@@ -37,40 +38,6 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
     HashMap<String, Integer> policies;
     MethodAcceses accesses;
 
-    //This implementation only allows one loggedinID at a given moment,
-    //to further improve this, a table to hold multiple session IDs should be implemented.
-    private String loggedinID = null;
-
-    private boolean authenticate(String tryPW, byte[] encryptedPW, byte[] salt)
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
-        byte[] encryptedTryPW = encryptPassword(tryPW, salt);
-        return Arrays.equals(encryptedPW, encryptedTryPW);
-    }
-
-    private byte[] encryptPassword(String pw, byte[] salt)
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
-
-        int keyLength = 160;
-
-        int iterations = 20000;
-
-        KeySpec spec = new PBEKeySpec(pw.toCharArray(), salt, iterations, keyLength);
-
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-
-        return factory.generateSecret(spec).getEncoded();
-    }
-
-    private byte[] generateSalt() throws NoSuchAlgorithmException {
-
-        SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
-
-        byte[] salt = new byte[8];
-        random.nextBytes(salt);
-
-        return salt;
-    }
-
     public PrintServant() throws RemoteException, FileNotFoundException {
         super();
         logger = new FileLogger();
@@ -80,261 +47,249 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
     }
 
     @Override
-    public void print(String filename, String printer) throws RemoteException {
+    public void print(String username, String password, String filename, String printer) throws RemoteException {
         try {
-            if (!loggedinID.equals(getClientHost())) {
+            var UM = new UserManagementTool();
+            var authenticated = UM.authenticate(username, password);
+
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Print)) {
                 return;
             }
-        } catch (ServerNotActiveException ex) {
+
+            //int userPermissions = policies.get("Alice");
+            //if (!manager.checkAccess(1, accesses.Print)) {
+            //    return;
+            //}
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            System.out.println(methodName + " invoked" + " by " + username);
+            logger.log("New");
+        } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        int userPermissions = policies.get("Alice");
-        if (!manager.checkAccess(1, accesses.Print)){
-            return;
-        }
-        
-        String methodName = new Object() {
-        }.getClass().getEnclosingMethod().getName();
-        System.out.println(methodName + " invoked"); 
-        logger.log("New");
-    }
-
-    @Override
-    public void queue() throws RemoteException {
-        try {
-            if (!loggedinID.equals(getClientHost())) {
-                return;
-            }
-        } catch (ServerNotActiveException ex) {
+        } catch (IOException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        int userPermissions = policies.get("Alice");
-        if (!manager.checkAccess(userPermissions, accesses.Queue)){
-            return;
-        }
-        
-        String methodName = new Object() {
-        }.getClass().getEnclosingMethod().getName();
-        System.out.println(methodName + " invoked");
-    }
-
-    @Override
-    public void login(String username, String pw) throws RemoteException {
-        String methodName = new Object() {
-        }.getClass().getEnclosingMethod().getName();
-        System.out.println(methodName + " invoked");
-
-        var ok = auth(username, pw);
-        if (ok) {
-            try {
-                loggedinID = getClientHost();
-            } catch (ServerNotActiveException ex) {
-                Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            System.out.println("Login succesful. User: " + username);
-        } else {
-            System.out.println("Wrong username or password.");
+        } catch (InvalidKeySpecException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void topQueue(int job) throws RemoteException {
+    public void queue(String username, String password) throws RemoteException {
+
         try {
-            if (!loggedinID.equals(getClientHost())) {
+            var UM = new UserManagementTool();
+            var authenticated = UM.authenticate(username, password);
+
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Queue)) {
                 return;
             }
-        } catch (ServerNotActiveException ex) {
+//        int userPermissions = policies.get("Alice");
+//        if (!manager.checkAccess(userPermissions, accesses.Queue)) {
+//            return;
+//        }
+
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            System.out.println(methodName + " invoked" + " by " + username);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeySpecException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        int userPermissions = policies.get("Alice");
-        if (!manager.checkAccess(userPermissions, accesses.TopQueue)){
-            return;
-        }
-        
-        String methodName = new Object() {
-        }.getClass().getEnclosingMethod().getName();
-        System.out.println(methodName + " invoked");
     }
 
     @Override
-    public void start() throws RemoteException {
+    public void topQueue(String username, String password, int job) throws RemoteException {
         try {
-            if (!loggedinID.equals(getClientHost())) {
+            var UM = new UserManagementTool();
+            var authenticated = UM.authenticate(username, password);
+
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.TopQueue)) {
                 return;
             }
-        } catch (ServerNotActiveException ex) {
+//        int userPermissions = policies.get("Alice");
+//        if (!manager.checkAccess(userPermissions, accesses.TopQueue)) {
+//            return;
+//        }
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            System.out.println(methodName + " invoked" + " by " + username);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeySpecException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        int userPermissions = policies.get("Alice");
-        if (!manager.checkAccess(userPermissions, accesses.Start)){
-            return;
-        }
-        
-        String methodName = new Object() {
-        }.getClass().getEnclosingMethod().getName();
-        System.out.println(methodName + " invoked");
     }
 
     @Override
-    public void stop() throws RemoteException {
+    public void start(String username, String password) throws RemoteException {
         try {
-            if (!loggedinID.equals(getClientHost())) {
+            var UM = new UserManagementTool();
+            var authenticated = UM.authenticate(username, password);
+
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Start)) {
                 return;
             }
-        } catch (ServerNotActiveException ex) {
+//        int userPermissions = policies.get("Alice");
+//        if (!manager.checkAccess(userPermissions, accesses.Start)) {
+//            return;
+//        }
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            System.out.println(methodName + " invoked" + " by " + username);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeySpecException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        int userPermissions = policies.get("Alice");
-        if (!manager.checkAccess(userPermissions, accesses.Stop)){
-            return;
-        }
-        
-        String methodName = new Object() {
-        }.getClass().getEnclosingMethod().getName();
-        System.out.println(methodName + " invoked");
     }
 
     @Override
-    public void restart() throws RemoteException {
+    public void stop(String username, String password) throws RemoteException {
         try {
-            if (!loggedinID.equals(getClientHost())) {
+            var UM = new UserManagementTool();
+            var authenticated = UM.authenticate(username, password);
+
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Stop)) {
                 return;
             }
-        } catch (ServerNotActiveException ex) {
+//        int userPermissions = policies.get("Alice");
+//        if (!manager.checkAccess(userPermissions, accesses.Stop)) {
+//            return;
+//        }
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            System.out.println(methodName + " invoked" + " by " + username);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeySpecException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        int userPermissions = policies.get("Alice");
-        if (!manager.checkAccess(userPermissions, accesses.Restart)){
-            return;
-        }
-        
-        String methodName = new Object() {
-        }.getClass().getEnclosingMethod().getName();
-        System.out.println(methodName + " invoked");
     }
 
     @Override
-    public void status() throws RemoteException {
+    public void restart(String username, String password) throws RemoteException {
         try {
-            if (!loggedinID.equals(getClientHost())) {
+            var UM = new UserManagementTool();
+            var authenticated = UM.authenticate(username, password);
+
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Restart)) {
                 return;
             }
-        } catch (ServerNotActiveException ex) {
+//        int userPermissions = policies.get("Alice");
+//        if (!manager.checkAccess(userPermissions, accesses.Restart)) {
+//            return;
+//        }
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            System.out.println(methodName + " invoked" + " by " + username);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeySpecException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        int userPermissions = policies.get("Alice");
-        if (!manager.checkAccess(userPermissions, accesses.Status)){
-            return;
-        }
-        
-        String methodName = new Object() {
-        }.getClass().getEnclosingMethod().getName();
-        System.out.println(methodName + " invoked");
     }
 
     @Override
-    public void readConfig(String parameter) throws RemoteException {
+    public void status(String username, String password) throws RemoteException {
         try {
-            if (!loggedinID.equals(getClientHost())) {
+            var UM = new UserManagementTool();
+            var authenticated = UM.authenticate(username, password);
+
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Status)) {
                 return;
             }
-        } catch (ServerNotActiveException ex) {
+//        int userPermissions = policies.get("Alice");
+//        if (!manager.checkAccess(userPermissions, accesses.Status)) {
+//            return;
+//        }
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            System.out.println(methodName + " invoked" + " by " + username);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeySpecException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        int userPermissions = policies.get("Alice");
-        if (!manager.checkAccess(userPermissions, accesses.ReadConfig)){
-            return;
-        }
-        
-        String methodName = new Object() {
-        }.getClass().getEnclosingMethod().getName();
-        System.out.println(methodName + " invoked");
     }
 
     @Override
-    public void setConfig(String parameter, String value) throws RemoteException {
+    public void readConfig(String username, String password, String parameter) throws RemoteException {
         try {
-            if (!loggedinID.equals(getClientHost())) {
+            var UM = new UserManagementTool();
+            var authenticated = UM.authenticate(username, password);
+
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.ReadConfig)) {
                 return;
             }
-        } catch (ServerNotActiveException ex) {
+//        int userPermissions = policies.get("Alice");
+//        if (!manager.checkAccess(userPermissions, accesses.ReadConfig)) {
+//            return;
+//        }
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            System.out.println(methodName + " invoked" + " by " + username);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeySpecException ex) {
             Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        int userPermissions = policies.get("Alice");
-        if (!manager.checkAccess(userPermissions, accesses.SetConfig)){
-            return;
-        }
-        
-        String methodName = new Object() {
-        }.getClass().getEnclosingMethod().getName();
-        System.out.println(methodName + " invoked");
     }
-    
+
+    @Override
+    public void setConfig(String username, String password, String parameter, String value) throws RemoteException {
+        try {
+            var UM = new UserManagementTool();
+            var authenticated = UM.authenticate(username, password);
+
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.SetConfig)) {
+                return;
+            }
+//        int userPermissions = policies.get("Alice");
+//        if (!manager.checkAccess(userPermissions, accesses.SetConfig)) {
+//            return;
+//        }
+            String methodName = new Object() {
+            }.getClass().getEnclosingMethod().getName();
+            System.out.println(methodName + " invoked" + " by " + username);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeySpecException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public HashMap<String, Integer> loadACLPolicies() throws FileNotFoundException {
         HashMap<String, Integer> policies = new HashMap<String, Integer>();
         Scanner scanner = new Scanner(new File("Policies"));
         scanner.nextLine();
-        while(scanner.hasNextLine()){
+        while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
             String[] stuff = line.split(":");
             String name = stuff[0];
             int permissions = Integer.parseInt(stuff[1]);
 //            Policy newpol = new Policy(name, permissions);
 //            policies.add(newpol);
-              policies.put(name, permissions);
+            policies.put(name, permissions);
         }
         System.out.println("Policies loaded");
         return policies;
-    }
-
-    private boolean auth(String username, String pw) {
-        try {
-
-            byte[] bytes = null;
-            byte[] saltBytes = null;
-            
-            String lul = System.getProperty("user.dir");
-            
-            System.out.println("Working Directory = " + System.getProperty("user.dir"));
-
-            Scanner scanner = new Scanner(new File("users"));
-            int linecount = 0;
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                if (linecount == 0) {
-                    if (!line.equals(username)) {
-                        return false;
-                    }
-                }
-                if (linecount == 1) {
-                    String s = line;
-                    bytes = s.getBytes();
-                } else if (linecount == 2) {
-                    String saltString = line;
-                    saltBytes = saltString.getBytes();
-                }
-                linecount++;
-            }
-
-            return authenticate(pw, bytes, saltBytes);
-
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidKeySpecException ex) {
-            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return false;
     }
 
 }
