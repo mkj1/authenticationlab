@@ -5,8 +5,10 @@
  */
 package authenticationlab;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.ServerNotActiveException;
@@ -36,14 +38,22 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
     FileLogger logger;
     AccessManager manager;
     HashMap<String, Integer> policies;
+    HashMap<String, String> rolesToAccesses;
+    HashMap<String, String> usersToRoles;
     MethodAcceses accesses;
 
     public PrintServant() throws RemoteException, FileNotFoundException {
         super();
-        logger = new FileLogger();
-        policies = loadACLPolicies();
-        manager = new AccessManager();
-        accesses = new MethodAcceses();
+        try {
+            logger = new FileLogger();
+            policies = loadACLPolicies();
+            rolesToAccesses = loadRolesToAccesses();
+            usersToRoles = loadUsersToRoles();
+            manager = new AccessManager();
+            accesses = new MethodAcceses();
+        } catch (IOException ex) {
+            Logger.getLogger(PrintServant.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -52,7 +62,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             var UM = new UserManagementTool();
             var authenticated = UM.authenticate(username, password);
 
-            if (!authenticated || !manager.checkRoleAccess(username, accesses.Print)) {
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Print, usersToRoles, rolesToAccesses)) {
                 return;
             }
 
@@ -80,7 +90,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             var UM = new UserManagementTool();
             var authenticated = UM.authenticate(username, password);
 
-            if (!authenticated || !manager.checkRoleAccess(username, accesses.Queue)) {
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Queue, usersToRoles, rolesToAccesses)) {
                 return;
             }
 //            int userPermissions = policies.get(username);
@@ -106,7 +116,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             var UM = new UserManagementTool();
             var authenticated = UM.authenticate(username, password);
 
-            if (!authenticated || !manager.checkRoleAccess(username, accesses.TopQueue)) {
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.TopQueue, usersToRoles, rolesToAccesses)) {
                 return;
             }
 //            int userPermissions = policies.get(username);
@@ -131,7 +141,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             var UM = new UserManagementTool();
             var authenticated = UM.authenticate(username, password);
 
-            if (!authenticated || !manager.checkRoleAccess(username, accesses.Start)) {
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Start, usersToRoles, rolesToAccesses)) {
                 return;
             }
 //            int userPermissions = policies.get(username);
@@ -156,7 +166,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             var UM = new UserManagementTool();
             var authenticated = UM.authenticate(username, password);
 
-            if (!authenticated || !manager.checkRoleAccess(username, accesses.Stop)) {
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Stop, usersToRoles, rolesToAccesses)) {
                 return;
             }
 //        int userPermissions = policies.get(username);
@@ -181,7 +191,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             var UM = new UserManagementTool();
             var authenticated = UM.authenticate(username, password);
 
-            if (!authenticated || !manager.checkRoleAccess(username, accesses.Restart)) {
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Restart, usersToRoles, rolesToAccesses)) {
                 return;
             }
 //        int userPermissions = policies.get(username);
@@ -206,7 +216,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             var UM = new UserManagementTool();
             var authenticated = UM.authenticate(username, password);
 
-            if (!authenticated || !manager.checkRoleAccess(username, accesses.Status)) {
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.Status, usersToRoles, rolesToAccesses)) {
                 return;
             }
 //        int userPermissions = policies.get(username);
@@ -231,7 +241,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             var UM = new UserManagementTool();
             var authenticated = UM.authenticate(username, password);
 
-            if (!authenticated || !manager.checkRoleAccess(username, accesses.ReadConfig)) {
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.ReadConfig, usersToRoles, rolesToAccesses)) {
                 return;
             }
 //        int userPermissions = policies.get(username);
@@ -256,7 +266,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             var UM = new UserManagementTool();
             var authenticated = UM.authenticate(username, password);
 
-            if (!authenticated || !manager.checkRoleAccess(username, accesses.SetConfig)) {
+            if (!authenticated || !manager.checkRoleAccess(username, accesses.SetConfig, usersToRoles, rolesToAccesses)) {
                 return;
             }
 //        int userPermissions = policies.get(username);
@@ -290,6 +300,46 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
         }
         System.out.println("Policies loaded");
         return policies;
+    }
+
+    public HashMap<String, String> loadRolesToAccesses() throws FileNotFoundException, IOException {
+        var rolesToAccesses = new HashMap<String, String>();
+        ArrayList<String> Roles = new ArrayList<>();
+
+        try ( BufferedReader br = new BufferedReader(new FileReader("Roles"))) {
+            while (br.ready()) {
+                Roles.add(br.readLine());
+            }
+        }
+
+        for (String str : Roles) {
+            var splitted = str.split(":");
+            rolesToAccesses.put(splitted[0], splitted[1]);
+
+        }
+
+        return rolesToAccesses;
+    }
+
+    private HashMap<String, String> loadUsersToRoles() throws FileNotFoundException, IOException {
+
+        var usersToRoles = new HashMap<String, String>();
+        ArrayList<String> UsersRoles = new ArrayList<>();
+
+        try ( BufferedReader br = new BufferedReader(new FileReader("UsersRoles"))) {
+            while (br.ready()) {
+                UsersRoles.add(br.readLine());
+            }
+        }
+
+        for (String str : UsersRoles) {
+            var splitted = str.split(":");
+            usersToRoles.put(splitted[0], splitted[1]);
+
+        }
+        
+        return usersToRoles;
+
     }
 
 }

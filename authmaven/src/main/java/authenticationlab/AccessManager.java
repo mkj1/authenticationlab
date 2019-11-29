@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 /**
@@ -23,40 +24,17 @@ public class AccessManager {
         return ((userPermissions >>> methodPermissions) & 1) != 0;
     }
 
-    public boolean checkRoleAccess(String username, int methodPermissions) throws FileNotFoundException, IOException {
+    public boolean checkRoleAccess(String username, int methodPermissions, HashMap<String, String> usersToRoles, HashMap<String, String> rolesToAccesses) throws FileNotFoundException, IOException {
         ArrayList<String> UsersRoles = new ArrayList<>();
 
-        try ( BufferedReader br = new BufferedReader(new FileReader("UsersRoles"))) {
-            while (br.ready()) {
-                UsersRoles.add(br.readLine());
-            }
-        }
-
         String role = null;
-        for (String str : UsersRoles) {
-            var splitted = str.split(":");
-            if (splitted[0].equals(username)) {
-                role = splitted[1];
-            }
-        }
-
-        ArrayList<String> Roles = new ArrayList<>();
-
-        try ( BufferedReader br = new BufferedReader(new FileReader("Roles"))) {
-            while (br.ready()) {
-                Roles.add(br.readLine());
-            }
-        }
+        role = usersToRoles.get(username);
 
         boolean permitted = false;
-        for (String str : Roles) {
-            var splitted = str.split(":");
-            if (splitted[0].equals(role)) {
-                var methods = splitted[1].split(",");
-                for(String s : methods){
-                    if(Integer.parseInt(s) == methodPermissions)
-                        permitted = true;
-                }
+        var methods = rolesToAccesses.get(role).split(",");
+        for (String s : methods) {
+            if (Integer.parseInt(s) == methodPermissions) {
+                permitted = true;
             }
         }
 
