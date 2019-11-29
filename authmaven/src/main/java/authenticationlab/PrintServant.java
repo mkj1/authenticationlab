@@ -56,10 +56,10 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
                 return;
             }
 
-            //int userPermissions = policies.get("Alice");
-            //if (!manager.checkAccess(1, accesses.Print)) {
-            //    return;
-            //}
+//            int userPermissions = policies.get(username);
+//            if (!manager.checkAccess(userPermissions, accesses.Print)) {
+//                return;
+//            }
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             System.out.println(methodName + " invoked" + " by " + username);
@@ -83,10 +83,10 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             if (!authenticated || !manager.checkRoleAccess(username, accesses.Queue)) {
                 return;
             }
-//        int userPermissions = policies.get("Alice");
-//        if (!manager.checkAccess(userPermissions, accesses.Queue)) {
-//            return;
-//        }
+//            int userPermissions = policies.get(username);
+//            if (!manager.checkAccess(userPermissions, accesses.Queue)) {
+//                return;
+//            }
 
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
@@ -109,10 +109,10 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             if (!authenticated || !manager.checkRoleAccess(username, accesses.TopQueue)) {
                 return;
             }
-//        int userPermissions = policies.get("Alice");
-//        if (!manager.checkAccess(userPermissions, accesses.TopQueue)) {
-//            return;
-//        }
+//            int userPermissions = policies.get(username);
+//            if (!manager.checkAccess(userPermissions, accesses.TopQueue)) {
+//                return;
+//            }
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             System.out.println(methodName + " invoked" + " by " + username);
@@ -134,10 +134,10 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             if (!authenticated || !manager.checkRoleAccess(username, accesses.Start)) {
                 return;
             }
-//        int userPermissions = policies.get("Alice");
-//        if (!manager.checkAccess(userPermissions, accesses.Start)) {
-//            return;
-//        }
+//            int userPermissions = policies.get(username);
+//            if (!manager.checkAccess(userPermissions, accesses.Start)) {
+//                return;
+//            }
             String methodName = new Object() {
             }.getClass().getEnclosingMethod().getName();
             System.out.println(methodName + " invoked" + " by " + username);
@@ -159,7 +159,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             if (!authenticated || !manager.checkRoleAccess(username, accesses.Stop)) {
                 return;
             }
-//        int userPermissions = policies.get("Alice");
+//        int userPermissions = policies.get(username);
 //        if (!manager.checkAccess(userPermissions, accesses.Stop)) {
 //            return;
 //        }
@@ -184,7 +184,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             if (!authenticated || !manager.checkRoleAccess(username, accesses.Restart)) {
                 return;
             }
-//        int userPermissions = policies.get("Alice");
+//        int userPermissions = policies.get(username);
 //        if (!manager.checkAccess(userPermissions, accesses.Restart)) {
 //            return;
 //        }
@@ -209,7 +209,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             if (!authenticated || !manager.checkRoleAccess(username, accesses.Status)) {
                 return;
             }
-//        int userPermissions = policies.get("Alice");
+//        int userPermissions = policies.get(username);
 //        if (!manager.checkAccess(userPermissions, accesses.Status)) {
 //            return;
 //        }
@@ -234,7 +234,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             if (!authenticated || !manager.checkRoleAccess(username, accesses.ReadConfig)) {
                 return;
             }
-//        int userPermissions = policies.get("Alice");
+//        int userPermissions = policies.get(username);
 //        if (!manager.checkAccess(userPermissions, accesses.ReadConfig)) {
 //            return;
 //        }
@@ -259,7 +259,7 @@ public class PrintServant extends UnicastRemoteObject implements PrintService {
             if (!authenticated || !manager.checkRoleAccess(username, accesses.SetConfig)) {
                 return;
             }
-//        int userPermissions = policies.get("Alice");
+//        int userPermissions = policies.get(username);
 //        if (!manager.checkAccess(userPermissions, accesses.SetConfig)) {
 //            return;
 //        }
