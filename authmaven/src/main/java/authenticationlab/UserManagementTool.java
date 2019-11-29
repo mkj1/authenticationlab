@@ -22,13 +22,10 @@ import java.security.spec.InvalidKeySpecException;
 public class UserManagementTool {
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {  
-        var q = authenticate("David", "1234");
-        var w = authenticate("Alice", "1234");
-        var e = authenticate("Bob", "1234");
-        var r = authenticate("Cecilia", "1234");
-        var t = authenticate("Erica", "1234");
-        var y = authenticate("Fred", "1234");
-        var u = authenticate("George", "1234");
+
+        var test = authenticate("Henry", "1234");
+        var test1 = authenticate("Ida", "1234");
+
     }
 
     private static void createUser(String username, String password) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
