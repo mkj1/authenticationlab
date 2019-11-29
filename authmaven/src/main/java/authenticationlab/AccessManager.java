@@ -25,7 +25,6 @@ public class AccessManager {
     }
 
     public boolean checkRoleAccess(String username, int methodPermissions, HashMap<String, String> usersToRoles, HashMap<String, String> rolesToAccesses) throws FileNotFoundException, IOException {
-        ArrayList<String> UsersRoles = new ArrayList<>();
 
         String role = null;
         role = usersToRoles.get(username);

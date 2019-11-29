@@ -1,7 +1,8 @@
 Alice:manager
-Bob:technician
 Cecilia:pu
 David:user
 Erica:user
 Fred:user
-George:user
+George:technician
+Henry:user
+Ida:pu
